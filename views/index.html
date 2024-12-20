@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>仿站电商平台</title>
+    <script src="../lib/axios.min.js"></script>
+    <script src="../lib/swiper/swiper-bundle.min.js"></script>
+    <link rel="stylesheet" href="../lib/swiper/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="../css/index.css" />
+  </head>
+  <body>
+    <div class="header">
+      <div class="header-content">
+        <div class="logo">仿站电商平台</div>
+        <div class="user-info">您好！<a href="./login.html">请登录</a></div>
+      </div>
+    </div>
+    <h1><a href="./list.html" class="buy-link">购买商品</a></h1>
+
+    <!-- 轮播图容器 -->
+    <div class="swiper">
+      <div class="swiper-wrapper">
+        <div class="swiper-slide">
+          <img src="../img/img1.jpg" alt="轮播图1">
+        </div>
+        <div class="swiper-slide">
+          <img src="../img/img2.jpg" alt="轮播图2">
+        </div>
+        <div class="swiper-slide">
+          <img src="../img/img3.jpg" alt="轮播图3">
+        </div>
+        <div class="swiper-slide">
+          <img src="../img/img4.jpg" alt="轮播图4">
+        </div>
+        <div class="swiper-slide">
+          <img src="../img/img5.jpg" alt="轮播图5">
+        </div>
+      </div>
+      <!-- 分页器 -->
+      <div class="swiper-pagination"></div>
+      <!-- 导航按钮 -->
+      <div class="swiper-button-prev"></div>
+      <div class="swiper-button-next"></div>
+    </div>
+
+    <!-- 其他内容保持不变 -->
+    <script>
+      // 检查登录态
+      function checkLogin() {
+        const token = localStorage.getItem("token");
+        const username = localStorage.getItem("username");
+        const nickname = localStorage.getItem("nickname");
+
+        if (token && username) {
+          document.querySelector(".user-info").innerHTML = `
+        <span>欢迎您，${nickname || username}</span>
+        <a href="./self.html">个人中心</a>
+        <a href="javascript:;" onclick="logout()">退出登录</a>
+      `;
+        }
+      }
+
+      // 退出登录
+      function logout() {
+        localStorage.removeItem("token");
+        localStorage.removeItem("username");
+        localStorage.removeItem("nickname");
+        location.reload();
+      }
+
+      // 初始化轮播图
+      function initSwiper() {
+        new Swiper(".swiper", {
+          loop: true,
+          autoplay: {
+            delay: 3000,
+          },
+          pagination: {
+            el: ".swiper-pagination",
+            clickable: true,
+          },
+          navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
+          },
+        });
+      }
+
+      // 页面加载完成后执行
+      window.onload = () => {
+        checkLogin();
+        initSwiper();
+      };
+    </script>
+  </body>
+</html>

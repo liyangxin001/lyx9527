@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>个人中心 - 仿站电商平台</title>
+    <script src="../lib/axios.min.js"></script>
+    <link rel="stylesheet" href="../css/common.css" />
+    <link rel="stylesheet" href="../css/self.css" />
+  </head>
+  <body>
+    <div class="header">
+      <div class="header-content">
+        <div class="logo">仿站电商平台</div>
+        <div class="user-info">
+          <a href="./rpwd.html" class="btn change-pwd-btn">修改密码</a>
+          <a href="javascript:;" onclick="goHome()">回到首页</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <h2 class="page-title">个人中心</h2>
+      <div class="profile-container">
+        <div class="profile-form">
+          <div class="form-group">
+            <label>用户名</label>
+            <input type="text" id="username" disabled />
+          </div>
+          <div class="form-group">
+            <label>昵称</label>
+            <input type="text" id="nickname" />
+          </div>
+          <div class="form-group">
+            <label>年龄</label>
+            <input type="number" id="age" min="1" max="120" />
+          </div>
+          <div class="form-group">
+            <label>性别</label>
+            <select id="gender">
+              <option value="">请选择</option>
+              <option value="男">男</option>
+              <option value="女">女</option>
+            </select>
+          </div>
+          <div class="btn-group">
+            <button class="btn save-btn" onclick="saveProfile()">保存修改</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // 获取用户信息
+      async function getUserInfo() {
+        try {
+          const userId = localStorage.getItem("userId");
+          // 需要添加authorization
+          const res = await axios.get(
+            `http://localhost:8888/users/info/${userId}`,
+            {
+              headers: {
+                Authorization: localStorage.getItem("token"),
+              },
+            }
+          );
+          if (res.data.code === 1) {
+            const user = res.data.info;
+
+            document.getElementById("username").value = user.username;
+            document.getElementById("nickname").value = user.nickname || "";
+            document.getElementById("age").value = user.age || "";
+            document.getElementById("gender").value = user.gender || "";
+          }
+        } catch (err) {
+          console.error("获取用户信息失败:", err);
+        }
+      }
+
+      // 保存用户信息
+      async function saveProfile() {
+        try {
+          const userId = localStorage.getItem("userId");
+          const nickname = document.getElementById("nickname").value.trim();
+          const age = document.getElementById("age").value;
+          const gender = document.getElementById("gender").value;
+
+          if (!nickname) {
+            alert("昵称不能为空");
+            return;
+          }
+          const params = {
+            id: userId,
+            nickname,
+            age: age ? parseInt(age) : null,
+            gender,
+          };
+          // 需要添加authorization
+          const res = await axios.post(
+            `http://localhost:8888/users/update`,
+            params,
+            {
+              headers: {
+                Authorization: localStorage.getItem("token"),
+              },
+            }
+          );
+
+          if (res.data.code === 1) {
+            alert("保存成功");
+            localStorage.setItem("nickname", nickname);
+          } else {
+            alert(res.data.msg);
+          }
+        } catch (err) {
+          alert("保存失败");
+        }
+      }
+
+      // 检查登录状态
+      function checkLogin() {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          location.href = "./login.html";
+        }
+      }
+
+      // 退出登录
+      function goHome() {
+        // localStorage.clear();
+        location.href = "./index.html";
+      }
+
+      // 页面加载完成后执行
+      window.onload = () => {
+        checkLogin();
+        getUserInfo();
+      };
+    </script>
+  </body>
+</html>

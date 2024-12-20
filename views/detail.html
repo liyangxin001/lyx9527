@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>商品详情 - 仿站电商平台</title>
+    <script src="../lib/axios.min.js"></script>
+    <link rel="stylesheet" href="../css/common.css" />
+    <link rel="stylesheet" href="../css/detail.css" />
+  </head>
+  <body>
+    <div class="header">
+      <div class="header-content">
+        <div class="logo">仿站电商平台</div>
+        <div class="user-info">
+          <a href="./login.html">您好！请登录</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <h2 class="page-title">商品详情</h2>
+      <div class="product-detail" id="productDetail">
+        <!-- 商品详情将通过JavaScript动态生成 -->
+      </div>
+      <div class="detail-footer">
+        <div class="action-buttons">
+          <a href="./list.html" class="btn-back">
+            <i class="icon-back"></i>返回列表
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // 获取商品ID
+      const urlParams = new URLSearchParams(window.location.search);
+      const productId = urlParams.get("id");
+      console.log(productId, "=====productId");
+
+      // 获取商品详情
+      async function getProductDetail() {
+        try {
+          const res = await axios.get(
+            `http://localhost:8888/goods/item/${productId}`
+          );
+          if (res.data.code === 1) {
+            //   const product = res.data.list.find(item => item.id === Number(productId))
+            const product = res.data.info;
+            renderProductDetail(product);
+          }
+        } catch (err) {
+          console.error("获取商品详情失败:", err);
+        }
+      }
+
+      // 渲染商品详情
+      function renderProductDetail(product) {
+        document.getElementById("productDetail").innerHTML = `
+        <div class="product-main">
+          <div class="product-image">
+            <img src="${product.img_big_logo}" alt="${product.title}" class="main-image">
+            <div class="image-overlay"></div>
+          </div>
+          <div class="product-info">
+            <div class="product-tags">
+              ${product.is_hot ? '<span class="tag hot">热销</span>' : ""}
+              ${product.is_sale ? '<span class="tag sale">特惠</span>' : ""}
+              ${product.sale_type ? `<span class="tag discount">${product.sale_type}</span>` : ""}
+            </div>
+            <h1 class="product-name">${product.title}</h1>
+            <div class="category">
+              <span class="category-label">分类：</span>
+              <span class="category-value">${product.category || '暂无分类'}</span>
+            </div>
+            <div class="price-info">
+              <div class="price-item">
+                <span class="price-label">当前价格：</span>
+                <div class="current-price">￥${product.current_price}</div>
+              </div>
+              <div class="price-item">
+                <span class="price-label">历史价格：</span>
+                ${product.price > product.current_price
+                  ? `<div class="original-price">￥${product.price}</div>`
+                  : `<div class="original-price">￥${product.price}</div>`
+                }
+              </div>
+            </div>
+            <div class="divider"></div>
+            <div class="product-desc">
+              <h3>商品描述</h3>
+              <p>${product.title}</p>
+              <div class="divider"></div>
+              <div class="goods-introduce">
+                <h3>商品详细介绍</h3>
+                <div class="introduce-content">
+                  ${product.goods_introduce || '暂无详细介绍'}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        `;
+      }
+
+      // 检查登录状态
+      function checkLogin() {
+        const token = localStorage.getItem("token");
+        const username = localStorage.getItem("username");
+
+        if (token && username) {
+          document.querySelector(".user-info").innerHTML = `
+          <span>欢迎您，${username}</span>
+          <a href="javascript:;" onclick="logout()">退出</a>
+        `;
+        }
+      }
+
+      // 退出登录
+      function logout() {
+        localStorage.removeItem("token");
+        localStorage.removeItem("username");
+        location.reload();
+      }
+
+      // 页面加载完成后执行
+      window.onload = () => {
+        checkLogin();
+        if (productId) {
+          getProductDetail();
+        } else {
+          alert("商品ID不存在");
+          location.href = "./list.html";
+        }
+      };
+    </script>
+  </body>
+</html>

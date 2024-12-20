@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>商品列表 - 仿站电商平台</title>
+    <script src="../lib/axios.min.js"></script>
+    <link rel="stylesheet" href="../css/common.css" />
+    <link rel="stylesheet" href="../css/list.css" />
+  </head>
+  <body>
+    <div class="header">
+      <div class="header-content">
+        <div class="logo">仿站电商平台</div>
+        <div class="user-info">
+          <a href="./login.html">您好！请登录</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <h2 class="page-title">商品列表</h2>
+      <div class="product-list" id="productList">
+        <!-- 商品列表将通过JavaScript动态生成 -->
+      </div>
+
+      <div class="pagination">
+        <button class="btn-page" data-action="first">首页</button>
+        <button class="btn-page" data-action="prev">上一页</button>
+        <span class="page-info">
+          第 <span id="currentPage">1</span> 页 / 共
+          <span id="totalPages">1</span> 页
+        </span>
+        <button class="btn-page" data-action="next">下一页</button>
+        <button class="btn-page" data-action="last">尾页</button>
+        <div class="page-size">
+          每页
+          <select id="pageSize">
+            <option value="5">5条</option>
+            <option value="10" selected>10条</option>
+            <option value="20">20条</option>
+            <option value="custom">自定义</option>
+          </select>
+          <div class="custom-pagesize" id="customPageSize" style="display: none">
+            <input type="number" min="1" id="customPageSizeInput" placeholder="请输入" />
+            <button class="btn-custom">确定</button>
+          </div>
+        </div>
+        <div class="page-jump">
+          跳转到：<input type="number" id="jumpPage" min="1" />
+          <button class="btn-jump">确定</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let currentPage = 1;
+      let pageSize = 10;
+      let total = 0;
+
+      // 获取商品列表
+      async function getProducts() {
+        try {
+          const res = await axios.get(
+            `http://localhost:8888/goods/list?current=${currentPage}&pagesize=${pageSize}`
+          );
+
+          if (res.data.code === 1) {
+            renderProducts(res.data.list);
+            total = res.data.total;
+            updatePagination();
+          }
+        } catch (err) {
+          console.error("获取商品列表失败:", err);
+        }
+      }
+
+      // 渲染商品列表
+      function renderProducts(products) {
+        const productList = document.getElementById("productList");
+        productList.innerHTML = products
+          .map(
+            (product) => `
+        <div class="product-item">
+          <a href="./detail.html?id=${product.goods_id}" class="product-link">
+            <img src="${product.img_big_logo}" alt="${
+              product.title
+            }" class="product-image">
+            <div class="product-info">
+              <div class="product-tags">
+                ${product.is_hot ? '<span class="tag hot">热销</span>' : ""}
+                ${product.is_sale ? '<span class="tag sale">特惠</span>' : ""}
+              </div>
+              <h3 class="product-name">${product.title}</h3>
+              <div class="price-info">
+                <p class="current-price">￥${product.current_price}</p>
+                ${
+                  product.price > product.current_price
+                    ? `<p class="original-price">￥${product.price}</p>`
+                    : ""
+                }
+              </div>
+            </div>
+          </a>
+        </div>
+      `
+          )
+          .join("");
+      }
+
+      // 更新分页信息
+      function updatePagination() {
+        const totalPages = Math.ceil(total / pageSize);
+        document.getElementById("currentPage").textContent = currentPage;
+        document.getElementById("totalPages").textContent = totalPages;
+        document.getElementById("jumpPage").max = totalPages;
+
+        // 更新按钮状态
+        document.querySelector('[data-action="first"]').disabled =
+          currentPage === 1;
+        document.querySelector('[data-action="prev"]').disabled =
+          currentPage === 1;
+        document.querySelector('[data-action="next"]').disabled =
+          currentPage === totalPages;
+        document.querySelector('[data-action="last"]').disabled =
+          currentPage === totalPages;
+      }
+
+      // 页面跳转
+      function jumpToPage(page) {
+        const totalPages = Math.ceil(total / pageSize);
+        if (page < 1) page = 1;
+        if (page > totalPages) page = totalPages;
+        currentPage = page;
+        getProducts();
+      }
+
+      // 绑定事件
+      document.querySelectorAll(".btn-page").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const action = btn.dataset.action;
+          const totalPages = Math.ceil(total / pageSize);
+
+          switch (action) {
+            case "first":
+              currentPage = 1;
+              break;
+            case "prev":
+              currentPage = Math.max(1, currentPage - 1);
+              break;
+            case "next":
+              currentPage = Math.min(totalPages, currentPage + 1);
+              break;
+            case "last":
+              currentPage = totalPages;
+              break;
+          }
+
+          getProducts();
+        });
+      });
+
+      // 跳转按钮事件
+      document.querySelector(".btn-jump").onclick = () => {
+        const page = parseInt(document.getElementById("jumpPage").value);
+        if (page) jumpToPage(page);
+      };
+
+      // 每页显示条数变化事件
+      document.querySelector("#pageSize").addEventListener("change", (e) => {
+        const customPageSize = document.getElementById("customPageSize");
+        if (e.target.value === "custom") {
+          customPageSize.style.display = "inline-flex";
+          return;
+        }
+        customPageSize.style.display = "none";
+        pageSize = parseInt(e.target.value);
+        currentPage = 1;
+        getProducts();
+      });
+
+      // 自定义分页大小确认按钮事件
+      document.querySelector(".btn-custom").addEventListener("click", () => {
+        const input = document.getElementById("customPageSizeInput");
+        const value = parseInt(input.value);
+        if (value && value > 0) {
+          pageSize = value;
+          currentPage = 1;
+          getProducts();
+          // 重置选择器
+          document.getElementById("pageSize").value = "custom";
+        } else {
+          alert("请输入有效的数字！");
+        }
+      });
+
+      // 自定义输入框回车事件
+      document
+        .getElementById("customPageSizeInput")
+        .addEventListener("keyup", (e) => {
+          if (e.key === "Enter") {
+            document.querySelector(".btn-custom").click();
+          }
+        });
+
+      // 初始化页面大小选择器
+      function initPageSize() {
+        const pageSizeSelect = document.getElementById("pageSize");
+        pageSizeSelect.value = pageSize;
+      }
+
+      // 检查登录状态
+      function checkLogin() {
+        const token = localStorage.getItem("token");
+        const username = localStorage.getItem("username");
+
+        if (token && username) {
+          document.querySelector(".user-info").innerHTML = `
+          <span>欢迎您，${username}</span>
+          <a href="javascript:;" onclick="logout()">退出</a>
+        `;
+        }
+      }
+
+      // 退出登录
+      function logout() {
+        localStorage.removeItem("token");
+        localStorage.removeItem("username");
+        location.reload();
+      }
+
+      // 页面加载完成后执行
+      window.onload = () => {
+        checkLogin();
+        initPageSize();
+        getProducts();
+      };
+    </script>
+  </body>
+</html>

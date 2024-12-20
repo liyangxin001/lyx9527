@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>修改密码 - 仿站电商平台</title>
+    <script src="../lib/axios.min.js"></script>
+    <link rel="stylesheet" href="../css/common.css" />
+    <link rel="stylesheet" href="../css/self.css" />
+  </head>
+  <body>
+    <div class="header">
+      <div class="header-content">
+        <div class="logo">仿站电商平台</div>
+        <div class="user-info">
+          <a href="javascript:;" onclick="goHome()">返回首页</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <h2 class="page-title">修改密码</h2>
+      <div class="profile-container">
+        <div class="profile-form">
+          <div class="form-group">
+            <label>原密码</label>
+            <input
+              type="password"
+              id="oldPassword"
+              placeholder="请输入原密码"
+            />
+          </div>
+          <div class="form-group">
+            <label>新密码</label>
+            <input
+              type="password"
+              id="newPassword"
+              placeholder="请输入6-16位新密码"
+            />
+          </div>
+          <div class="form-group">
+            <label>确认密码</label>
+            <input
+              type="password"
+              id="confirmPassword"
+              placeholder="请再次输入新密码"
+            />
+          </div>
+          <div class="btn-group">
+            <button class="btn save-btn" onclick="changePassword()">
+              确认修改
+            </button>
+            <a href="./self.html" class="btn back-btn">返回个人中心</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // 修改密码
+      async function changePassword() {
+        const oldPassword = document.getElementById("oldPassword").value.trim();
+        const newPassword = document.getElementById("newPassword").value.trim();
+        const confirmPassword = document
+          .getElementById("confirmPassword")
+          .value.trim();
+
+        if (!oldPassword || !newPassword || !confirmPassword) {
+          alert("请填写完整信息");
+          return;
+        }
+
+        if (newPassword.length < 6 || newPassword.length > 16) {
+          alert("新密码长度应为6-16位");
+          return;
+        }
+
+        if (newPassword !== confirmPassword) {
+          alert("两次密码输入不一致");
+          return;
+        }
+
+        try {
+          const userId = localStorage.getItem("userId");
+          // 需要添加authorization
+          const res = await axios.post(
+            `http://localhost:8888/users/rpwd/`,
+            {
+              id: userId,
+              oldPassword,
+              newPassword,
+              rNewPassword: confirmPassword,
+            },
+            {
+              headers: {
+                Authorization: localStorage.getItem("token"),
+              },
+            }
+          );
+
+          if (res.data.code === 1) {
+            alert("密码修改成功，请重新登录");
+            localStorage.clear();
+            location.href = "./login.html";
+          } else {
+            alert(res.data.msg);
+          }
+        } catch (err) {
+          alert("修改失败");
+        }
+      }
+
+      // 检查登录状态
+      function checkLogin() {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          location.href = "./login.html";
+        }
+      }
+
+      // 退出登录
+      function goHome() {
+        location.href = "./index.html";
+      }
+
+      // 页面加载完成后执行
+      window.onload = () => {
+        checkLogin();
+      };
+    </script>
+  </body>
+</html>
