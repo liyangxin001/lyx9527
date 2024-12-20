@@ -11,7 +11,9 @@
   <body>
     <div class="header">
       <div class="header-content">
-        <div class="logo">仿站电商平台</div>
+        <div class="logo">
+          <a href="./index.html" class="back-home">返回首页</a>
+        </div>
         <div class="user-info">
           <a href="./login.html">您好！请登录</a>
         </div>
@@ -179,7 +181,7 @@
         getProducts();
       });
 
-      // 自定义分页大小确认按钮事件
+      // 自定义分页大小确认按钮件
       document.querySelector(".btn-custom").addEventListener("click", () => {
         const input = document.getElementById("customPageSizeInput");
         const value = parseInt(input.value);
@@ -217,16 +219,18 @@
         if (token && username) {
           document.querySelector(".user-info").innerHTML = `
           <span>欢迎您，${username}</span>
-          <a href="javascript:;" onclick="logout()">退出</a>
+          <a href="javascript:;" onclick="logout()">退出登录</a>
         `;
         }
       }
 
       // 退出登录
       function logout() {
-        localStorage.removeItem("token");
-        localStorage.removeItem("username");
-        location.reload();
+        if (confirm('确定要注销登录吗？')) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("username");
+          location.reload();
+        }
       }
 
       // 页面加载完成后执行

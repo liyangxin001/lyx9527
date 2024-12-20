@@ -118,9 +118,12 @@
 
       // 退出登录
       function logout() {
-        localStorage.removeItem("token");
-        localStorage.removeItem("username");
-        location.reload();
+        if (confirm('确定要注销登录吗？')) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("username");
+          localStorage.removeItem("nickname");
+          location.reload();
+        }
       }
 
       // 页面加载完成后执行

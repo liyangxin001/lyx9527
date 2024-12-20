@@ -54,19 +54,25 @@
 
         if (token && username) {
           document.querySelector(".user-info").innerHTML = `
-        <span>欢迎您，${nickname || username}</span>
-        <a href="./self.html">个人中心</a>
-        <a href="javascript:;" onclick="logout()">退出登录</a>
-      `;
+            <span>欢迎您，${nickname || username}</span>
+            <a href="./self.html">个人中心</a>
+            <a href="javascript:;" onclick="logout()">退出登录</a>
+          `;
+          // 如果是从登录页面跳转过来的，刷新页面
+          if (document.referrer.includes('login.html')) {
+            location.href = './index.html';
+          }
         }
       }
 
       // 退出登录
       function logout() {
-        localStorage.removeItem("token");
-        localStorage.removeItem("username");
-        localStorage.removeItem("nickname");
-        location.reload();
+        if (confirm('确定要注销登录吗？')) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("username");
+          localStorage.removeItem("nickname");
+          location.reload();
+        }
       }
 
       // 初始化轮播图
